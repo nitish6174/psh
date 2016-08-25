@@ -5,76 +5,9 @@
 #include <string.h>
 
 #include "print_format.h"
+#include "builtin.h"
 
 
-
-/* Function Declarations */
-int psh_cd(char **args);
-int psh_help(char **args);
-int psh_exit(char **args);
-
-
-/* List of builtin commands, followed by their corresponding functions */
-char *builtin_str[] = {
-	"cd",
-	"help",
-	"exit"
-};
-
-int (*builtin_func[]) (char **) = {
-	&psh_cd,
-	&psh_help,
-	&psh_exit
-};
-
-
-
-int psh_num_builtins()
-{
-	return sizeof(builtin_str) / sizeof(char *);
-}
-
-
-/* Builtin function implementations */
-
-/* Bultin command: change directory */
-int psh_cd(char **args)
-{
-	if (args[1] == NULL)
-	{
-		fprintf(stderr, "psh: expected argument to \"cd\"\n");
-	}
-	else
-	{
-		if (chdir(args[1]) != 0)
-		{
-			perror("psh");
-		}
-	}
-	return 1;
-}
-
-/* Builtin command: print help */
-int psh_help(char **args)
-{
-	int i;
-	printf("Type program names and arguments, and hit enter.\n");
-	printf("The following are built in:\n");
-	for (i = 0; i < psh_num_builtins(); i++)
-	{
-		printf("  %s\n", builtin_str[i]);
-	}
-
-	printf("Use the man command for information on other programs.\n");
-	return 1;
-}
-
-
-/* Builtin command: exit */
-int psh_exit(char **args)
-{
-	return 0;
-}
 
 /* Launch a program and wait for it to terminate */
 int psh_launch(char **args)
@@ -109,6 +42,8 @@ int psh_launch(char **args)
 	return 1;
 }
 
+
+
 /* Execute shell built-in or launch program. */
 int psh_execute(char **args)
 {
@@ -130,6 +65,8 @@ int psh_execute(char **args)
 
 	return psh_launch(args);
 }
+
+
 
 #define PSH_RL_BUFSIZE 1024
 /* Read a line of input from stdin */
@@ -187,6 +124,8 @@ char *psh_read_line(void)
 	}
 }
 
+
+
 #define PSH_TOK_BUFSIZE 64
 #define PSH_TOK_DELIM " \t\r\n\a"
 /* Split a line into tokens (very naively) */
@@ -227,6 +166,8 @@ char **psh_split_line(char *line)
 	return tokens;
 }
 
+
+
 /* Loop to get input and execute it */
 void psh_loop(void)
 {
@@ -236,7 +177,7 @@ void psh_loop(void)
 	char cwd[10240];
 	do
 	{
-		printf("%s%s"ANSI_COLOR_RESET"> ",formatCode("underline","green"),getcwd(cwd,sizeof(cwd)));
+		printf("%s%s"PRINT_RESET"> ",formatCode("underline","green"),getcwd(cwd,sizeof(cwd)));
 		line = psh_read_line();
 		args = psh_split_line(line);
 		status = psh_execute(args);
