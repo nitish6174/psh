@@ -2,7 +2,8 @@
 **Shell supporting basic commands made with C**
 
 ### Features
-- File & Directory commands: ```pwd```, ```ls```, ```cd```, ```mkdir```, ```touch```, ```rm```, ```cp```, ```mv```
+- File & Directory commands: ```pwd```, ```ls```, ```mkdir```, ```touch```, ```rm```, ```cp```, ```mv```
+- Changes shell directory with ```cd``` command
 - Exits shell with ```exit```
 - ```help``` command shows help
 - ```history``` command shows history of last 10 commands entered

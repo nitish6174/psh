@@ -1,19 +1,8 @@
-pwd
-ls
+pwd , ls , mkdir , touch , rm , cp , mv
 cd
-mkdir
-touch
-rm
-cp
-mv
-cat
 exit
+help
+history
 
-execute
 redirection
 pipes
-
-history
-man
-
-write_file
