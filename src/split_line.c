@@ -1,7 +1,8 @@
 /* Split a line into tokens */
+
 #define PSH_TOK_BUFSIZE 64
 #define PSH_TOK_DELIM " \t\r\n\a"
-/* Split a line into tokens (very naively) */
+
 char **psh_split_line(char *line)
 {
 	int bufsize = PSH_TOK_BUFSIZE, position = 0;

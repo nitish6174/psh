@@ -4,12 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "print_format.h"
-#include "builtin.h"
-#include "read_line.h"
-#include "split_line.h"
-#include "process.h"
-#include "history.h"
+#include "header.h"
 
 
 /* Loop to get input and execute it */

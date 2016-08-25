@@ -25,4 +25,3 @@ void update_history(char *buffer)
 	fclose(fp);
 	return;
 }
-
