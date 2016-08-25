@@ -24,8 +24,9 @@ char *formatCode(char *style, char *color);
 
 #ifndef _PROCESS_
 #define _PROCESS_
-int psh_launch(char **execargs);
 int psh_execute(char **args);
+int psh_execute_process(char **args);
+int psh_launch(char **execargs);
 char ***split_process_wise(char **args);
 #endif
 
