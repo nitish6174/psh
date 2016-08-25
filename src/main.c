@@ -81,11 +81,15 @@ int psh_exit(char **args)
 }
 
 /* Launch a program and wait for it to terminate */
-int psh_launch(char **args)
+int psh_launch(char **execargs)
 {
 	pid_t pid;
 	int status;
-
+	char ** args = execargs;
+	// if(args[0][0]=='!')
+	// {
+	// 	args = psh_history(args[0]);
+	// }
 	pid = fork();
 	if (pid == 0)
 	{
@@ -135,6 +139,34 @@ int psh_execute(char **args)
 	return psh_launch(args);
 }
 
+/*Update History*/
+void update_history(char *buffer)
+{
+	FILE *fp;
+	if( access( "history", F_OK ) != -1 ) 
+	{
+		fp = fopen("history", "r+");
+		int lines;
+		fscanf(fp,"%d\n",&lines);
+		lines++;
+		fseek(fp,0,SEEK_SET);
+		fprintf(fp, "%d\n",lines );
+		fclose(fp);
+	}
+
+	else 
+	{
+		fp = fopen("history", "w");
+		fprintf(fp, "%d\n",1 );
+		fclose(fp);
+	}
+
+	fp = fopen("history", "a+");
+	fprintf(fp, "%s\n",buffer );
+	fclose(fp);
+	return;
+}
+
 #define PSH_RL_BUFSIZE 1024
 /* Read a line of input from stdin */
 char *psh_read_line(void)
@@ -143,9 +175,8 @@ char *psh_read_line(void)
 	int position = 0;
 	char *buffer = malloc(sizeof(char) * bufsize);
 	int c;
-	FILE *fp;
 
-	fp = fopen("history", "a+");
+
 	if (!buffer)
 	{
 		fprintf(stderr, "psh: allocation error\n");
@@ -161,15 +192,9 @@ char *psh_read_line(void)
 		if (c == EOF || c == '\n')
 		{
 			buffer[position] = '\0';
-			fprintf(fp, "%s\n",buffer );
-			fclose(fp);
+			update_history(buffer);
 			return buffer;
-		}
-		else if(c==12)
-		{
-			
-			strcpy(buffer,"clear");
-			return buffer;
+		
 		}
 		else
 		{
