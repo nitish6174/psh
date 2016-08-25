@@ -74,8 +74,31 @@ void update_history(char *buffer)
 	return;
 }
 
-// char **psh_history(char *input)
-// {
+int psh_history()
+{
+
+	FILE * fp;
+	fp = fopen("history", "r");
+	int lines;
+	int offset;
+	fscanf(fp,"%d\n",&lines);
+	char * line = NULL;
+	size_t len = 0;
+	ssize_t read;
 
 
-// }
+	if(lines>HIST_LIMIT)
+		offset=lines-HIST_LIMIT;
+	else
+		offset=0;
+	int temp=0;
+	fseek(fp,0,SEEK_SET);
+	while ((read = getline(&line, &len, fp)) != -1) {
+	    if(temp>offset)
+	    	printf("%d %s", temp-offset,line);
+	    temp++;
+	}
+	fclose(fp);
+	return 1;
+
+}

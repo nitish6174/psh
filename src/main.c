@@ -20,7 +20,7 @@ void psh_loop(void)
 		line = psh_read_line();
 		args = psh_split_line(line);
 		status = psh_execute(args);
-
+		update_history(line);
 		free(line);
 		free(args);
 	} while (status);

@@ -33,7 +33,6 @@ char *psh_read_line(void)
 		if (c == EOF || c == '\n')
 		{
 			buffer[position] = '\0';
-			update_history(buffer);
 			return buffer;
 		
 		}

@@ -1,16 +1,18 @@
 #ifndef _BUILTIN_
 #define _BUILTIN_
+#define BUILTIN_FUNC 4
 int psh_num_builtins();
 int psh_cd(char **args);
 int psh_help(char **args);
 int psh_exit(char **args);
-extern char *builtin_str[3];
-extern int (*builtin_func[3]) (char **) ;
+extern char *builtin_str[BUILTIN_FUNC];
+extern int (*builtin_func[BUILTIN_FUNC]) (char **) ;
 #endif
 
 #ifndef _HISTORY_
 #define _HISTORY_
 void update_history(char *buffer);
+int psh_history();
 #endif
 
 #ifndef _PRINT_FORMAT_

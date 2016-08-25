@@ -5,18 +5,21 @@
 #include <string.h>
 
 #include "header.h"
+#define BUILTIN_FUNC 4
 
 /* List of built-in commands */
-char *builtin_str[3] = {
+char *builtin_str[BUILTIN_FUNC] = {
 	"cd",
 	"help",
-	"exit"
+	"exit",
+	"history"
 };
 /* Pointer to these basic functions */
-int (*builtin_func[3]) (char **) = {
+int (*builtin_func[BUILTIN_FUNC]) (char **) = {
 	&psh_cd,
 	&psh_help,
-	&psh_exit
+	&psh_exit,
+	&psh_history
 };
 
 /* Launch a program and wait for it to terminate */
