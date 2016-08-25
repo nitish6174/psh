@@ -18,9 +18,9 @@ void psh_loop(void)
 	{
 		printf("%s%s" PRINT_RESET "> ",formatCode("underline","green"),getcwd(cwd,sizeof(cwd)));
 		line = psh_read_line();
+		update_history(line);
 		args = psh_split_line(line);
 		status = psh_execute(args);
-		update_history(line);
 		free(line);
 		free(args);
 	} while (status);
