@@ -1,4 +1,11 @@
 /* Print with different style and color */
+#include <sys/wait.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+#include "header.h"
 
 #define PRINT_RESET "\x1b[0m"
 

@@ -4,7 +4,12 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "header.h"
+#include "history.h"
+#include "print_format.h"
+#include "builtin.h"
+#include "read_line.h"
+#include "split_line.h"
+#include "process.h"
 
 
 /* Loop to get input and execute it */
@@ -16,7 +21,7 @@ void psh_loop(void)
 	char cwd[10240];
 	do
 	{
-		printf("%s%s" PRINT_RESET "> ",formatCode("underline","green"),getcwd(cwd,sizeof(cwd)));
+		printf("%s%s"PRINT_RESET"> ",formatCode("underline","green"),getcwd(cwd,sizeof(cwd)));
 		line = psh_read_line();
 		args = psh_split_line(line);
 		status = psh_execute(args);

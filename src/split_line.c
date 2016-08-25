@@ -1,3 +1,12 @@
+#include <sys/wait.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+#include "header.h"
+
+
 /* Split a line into tokens */
 
 #define PSH_TOK_BUFSIZE 64

@@ -1,12 +1,13 @@
 /* Basic built-in functions */
 
+#include <sys/wait.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
-/* List of built-in commands */
-char *builtin_str[] = {
-	"cd",
-	"help",
-	"exit"
-};
+#include "header.h"
+
 
 int psh_num_builtins()
 {
@@ -56,9 +57,3 @@ int psh_exit(char **args)
 
 
 
-/* Pointer to these basic functions */
-int (*builtin_func[]) (char **) = {
-	&psh_cd,
-	&psh_help,
-	&psh_exit
-};

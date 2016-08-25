@@ -4,6 +4,8 @@ int psh_num_builtins();
 int psh_cd(char **args);
 int psh_help(char **args);
 int psh_exit(char **args);
+extern char *builtin_str[3];
+extern int (*builtin_func[3]) (char **) ;
 #endif
 
 #ifndef _HISTORY_
@@ -13,6 +15,7 @@ void update_history(char *buffer);
 
 #ifndef _PRINT_FORMAT_
 #define _PRINT_FORMAT_
+#define PRINT_RESET "\x1b[0m"
 char *formatCode(char *style, char *color);
 #endif
 
