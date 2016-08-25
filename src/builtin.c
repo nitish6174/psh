@@ -1,5 +1,3 @@
-/* Basic built-in functions */
-
 #include <sys/wait.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -9,6 +7,10 @@
 #include "header.h"
 
 
+/* Basic built-in functions */
+
+
+/* Get number of built-in functions */
 int psh_num_builtins()
 {
 	return sizeof(builtin_str) / sizeof(char *);
@@ -54,6 +56,3 @@ int psh_exit(char **args)
 {
 	return 0;
 }
-
-
-

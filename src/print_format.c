@@ -1,4 +1,3 @@
-/* Print with different style and color */
 #include <sys/wait.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -9,6 +8,7 @@
 
 #define PRINT_RESET "\x1b[0m"
 
+/* Print with different style and color */
 char *formatCode(char *style, char *color)
 {
 

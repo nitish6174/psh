@@ -21,7 +21,6 @@ void update_history(char *buffer)
 		fprintf(fp, "%d\n",lines );
 		fclose(fp);
 	}
-
 	else 
 	{
 		fp = fopen("history", "w");

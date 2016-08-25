@@ -6,11 +6,10 @@
 
 #include "header.h"
 
-
-/* Read a line of input from stdin */
-
 #define PSH_RL_BUFSIZE 1024
 
+
+/* Read a line of input from stdin */
 char *psh_read_line(void)
 {
 	int bufsize = PSH_RL_BUFSIZE;
