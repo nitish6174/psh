@@ -1,9 +1,13 @@
 /* Launch a program and wait for it to terminate */
-int psh_launch(char **args)
+int psh_launch(char **execargs)
 {
 	pid_t pid;
 	int status;
-
+	char ** args = execargs;
+	// if(args[0][0]=='!')
+	// {
+	// 	args = psh_history(args[0]);
+	// }
 	pid = fork();
 	if (pid == 0)
 	{
@@ -30,6 +34,8 @@ int psh_launch(char **args)
 
 	return 1;
 }
+
+
 
 
 /* Execute shell built-in or launch program. */

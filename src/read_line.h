@@ -1,16 +1,14 @@
-/* Read a line of input from stdin */
 
 #define PSH_RL_BUFSIZE 1024
-
+/* Read a line of input from stdin */
 char *psh_read_line(void)
 {
 	int bufsize = PSH_RL_BUFSIZE;
 	int position = 0;
 	char *buffer = malloc(sizeof(char) * bufsize);
 	int c;
-	FILE *fp;
 
-	fp = fopen("history", "a+");
+
 	if (!buffer)
 	{
 		fprintf(stderr, "psh: allocation error\n");
@@ -26,15 +24,9 @@ char *psh_read_line(void)
 		if (c == EOF || c == '\n')
 		{
 			buffer[position] = '\0';
-			fprintf(fp, "%s\n",buffer );
-			fclose(fp);
+			update_history(buffer);
 			return buffer;
-		}
-		else if(c==12)
-		{
-			
-			strcpy(buffer,"clear");
-			return buffer;
+		
 		}
 		else
 		{
