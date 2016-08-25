@@ -13,6 +13,7 @@ extern int (*builtin_func[BUILTIN_FUNC]) (char **) ;
 #define _HISTORY_
 void update_history(char *buffer);
 int psh_history();
+char *launch_history(char *input);
 #endif
 
 #ifndef _PRINT_FORMAT_

@@ -102,3 +102,51 @@ int psh_history()
 	return 1;
 
 }
+
+char *launch_history(char *input)
+{
+	FILE * fp;
+	fp = fopen("history", "r");
+	int lines;
+	int offset;
+	fscanf(fp,"%d\n",&lines);
+	char * line = NULL;
+	size_t len = 0;
+	ssize_t read;
+	int temp=0;
+
+	if(input[1]=='!')
+	{
+		fseek(fp,0,SEEK_SET);
+		while ((read = getline(&line, &len, fp)) != -1) {
+			temp++;
+		}
+		fclose(fp);
+		return line;
+
+	}
+	else
+	{
+		int lineN=0;
+		char curr = 1;
+		while(input[curr]>='0' && input[curr]<'0'+10)
+		{
+			lineN*=10;
+			lineN += input[curr]-'0';
+			curr++;
+		}
+		if(lines>HIST_LIMIT)
+			offset=lines-HIST_LIMIT+lineN;
+		else
+			offset=lineN;
+		int temp=0;
+		fseek(fp,0,SEEK_SET);
+		while ((read = getline(&line, &len, fp)) != -1) {
+		    if(temp==offset)
+		    	break;
+		    temp++;
+		}
+		fclose(fp);
+		return line;
+	}
+}

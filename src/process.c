@@ -23,15 +23,11 @@ int (*builtin_func[BUILTIN_FUNC]) (char **) = {
 };
 
 /* Launch a program and wait for it to terminate */
-int psh_launch(char **execargs)
+int psh_launch(char **args)
 {
 	pid_t pid;
 	int status;
-	char ** args = execargs;
-	// if(args[0][0]=='!')
-	// {
-	// 	args = psh_history(args[0]);
-	// }
+
 	pid = fork();
 	if (pid == 0)
 	{
