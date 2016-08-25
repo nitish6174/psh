@@ -6,6 +6,18 @@
 
 #include "header.h"
 
+/* List of built-in commands */
+char *builtin_str[3] = {
+	"cd",
+	"help",
+	"exit"
+};
+/* Pointer to these basic functions */
+int (*builtin_func[3]) (char **) = {
+	&psh_cd,
+	&psh_help,
+	&psh_exit
+};
 
 /* Launch a program and wait for it to terminate */
 int psh_launch(char **execargs)
@@ -43,19 +55,7 @@ int psh_launch(char **execargs)
 
 	return 1;
 }
-/* List of built-in commands */
-char *builtin_str[3] = {
-	"cd",
-	"help",
-	"exit"
-};
 
-/* Pointer to these basic functions */
-int (*builtin_func[3]) (char **) = {
-	&psh_cd,
-	&psh_help,
-	&psh_exit
-};
 
 /* Execute shell built-in or launch program. */
 int psh_execute(char **args)
