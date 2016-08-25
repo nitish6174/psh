@@ -5,7 +5,7 @@
 #include <string.h>
 
 #include "header.h"
-#define HIST_LIMIT 3
+#define HIST_LIMIT 50
 
 /*Update History*/
 void update_history(char *buffer)
@@ -122,6 +122,12 @@ char *launch_history(char *input)
 			temp++;
 		}
 		fclose(fp);
+		int curr=0;
+		while(line[curr]!='\n')
+			{
+				curr++;
+			}
+		line[curr]='\0'	;
 		return line;
 
 	}
@@ -146,7 +152,13 @@ char *launch_history(char *input)
 		    	break;
 		    temp++;
 		}
+
 		fclose(fp);
+		while(line[curr]!='\n')
+			{
+				curr++;
+			}
+		line[curr]='\0'	;
 		return line;
 	}
 }
