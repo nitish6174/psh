@@ -26,6 +26,7 @@ char *formatCode(char *style, char *color);
 #define _PROCESS_
 int psh_launch(char **execargs);
 int psh_execute(char **args);
+char ***split_process_wise(char **args);
 #endif
 
 #ifndef _READ_LINE_
