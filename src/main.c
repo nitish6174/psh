@@ -73,6 +73,7 @@ int psh_help(char **args)
 	return 1;
 }
 
+
 /* Builtin command: exit */
 int psh_exit(char **args)
 {
@@ -142,7 +143,9 @@ char *psh_read_line(void)
 	int position = 0;
 	char *buffer = malloc(sizeof(char) * bufsize);
 	int c;
+	FILE *fp;
 
+	fp = fopen("history", "a+");
 	if (!buffer)
 	{
 		fprintf(stderr, "psh: allocation error\n");
@@ -158,6 +161,14 @@ char *psh_read_line(void)
 		if (c == EOF || c == '\n')
 		{
 			buffer[position] = '\0';
+			fprintf(fp, "%s\n",buffer );
+			fclose(fp);
+			return buffer;
+		}
+		else if(c==12)
+		{
+			
+			strcpy(buffer,"clear");
 			return buffer;
 		}
 		else
