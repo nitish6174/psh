@@ -17,7 +17,6 @@ char *psh_read_line(void)
 	char *buffer = malloc(sizeof(char) * bufsize);
 	int c;
 
-
 	if (!buffer)
 	{
 		fprintf(stderr, "psh: allocation error\n");
@@ -37,8 +36,7 @@ char *psh_read_line(void)
 			{
 				return launch_history(buffer);
 			}
-			return buffer;
-		
+			return buffer;		
 		}
 		else
 		{

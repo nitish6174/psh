@@ -7,7 +7,37 @@
 #include "header.h"
 #define HIST_LIMIT 50
 
-/*Update History*/
+
+/* Show history */
+int psh_history()
+{
+	FILE * fp;
+	fp = fopen("history", "r");
+	int lines;
+	int offset;
+	fscanf(fp,"%d\n",&lines);
+	char * line = NULL;
+	size_t len = 0;
+	ssize_t read;
+
+	if(lines>HIST_LIMIT)
+		offset=lines-HIST_LIMIT;
+	else
+		offset=0;
+	int temp=0;
+	fseek(fp,0,SEEK_SET);
+	while ((read = getline(&line, &len, fp)) != -1)
+	{
+		if(temp>offset)
+			printf("%d %s", temp-offset,line);
+		temp++;
+	}
+	fclose(fp);
+	return 1;
+}
+
+
+/* Update History*/
 void update_history(char *buffer)
 {
 	int flag=0;
@@ -28,7 +58,6 @@ void update_history(char *buffer)
 		fprintf(fp, "%d\n",lines );
 		fclose(fp);
 	}
-
 	else 
 	{
 		fp = fopen("history", "w");
@@ -39,34 +68,31 @@ void update_history(char *buffer)
 	if(flag)
 	{
 		FILE *fileptr1, *fileptr2;
-
 		char ch;
 		int delete_line=HIST_LIMIT, temp = 1;
 		fileptr1 = fopen("history", "r");
 		char buffer[10240];
 		fileptr2 = fopen("replica", "w");
 		FILE * fp;
-	    char * line = NULL;
-	    size_t len = 0;
-	    ssize_t read;
+		char * line = NULL;
+		size_t len = 0;
+		ssize_t read;
 
+		while ((read = getline(&line, &len, fileptr1)) != -1)
+		{
+			if(temp>HIST_LIMIT+2 || temp==1)
+				fprintf(fileptr2,"%s", line);
+			temp++;
+		}
 
-	    while ((read = getline(&line, &len, fileptr1)) != -1) {
-	        if(temp>HIST_LIMIT+2 || temp==1)
-	        	fprintf(fileptr2,"%s", line);
-	        temp++;
-	    }
-
-	    if (line)
-	        free(line);
+		if (line)
+			free(line);
 		fclose(fileptr2);
 		remove("history");
 		//rename the file replica.c to original name
 		rename("replica", "history");
-		fclose(fileptr1);
-	
+		fclose(fileptr1);	
 	}
-
 
 	fp = fopen("history", "a+");
 	fprintf(fp, "%s\n",buffer );
@@ -74,35 +100,7 @@ void update_history(char *buffer)
 	return;
 }
 
-int psh_history()
-{
-
-	FILE * fp;
-	fp = fopen("history", "r");
-	int lines;
-	int offset;
-	fscanf(fp,"%d\n",&lines);
-	char * line = NULL;
-	size_t len = 0;
-	ssize_t read;
-
-
-	if(lines>HIST_LIMIT)
-		offset=lines-HIST_LIMIT;
-	else
-		offset=0;
-	int temp=0;
-	fseek(fp,0,SEEK_SET);
-	while ((read = getline(&line, &len, fp)) != -1) {
-	    if(temp>offset)
-	    	printf("%d %s", temp-offset,line);
-	    temp++;
-	}
-	fclose(fp);
-	return 1;
-
-}
-
+/* Run a command stored in history */
 char *launch_history(char *input)
 {
 	FILE * fp;
@@ -115,22 +113,24 @@ char *launch_history(char *input)
 	ssize_t read;
 	int temp=0;
 
+	/* Run the last entered command in history */
 	if(input[1]=='!')
 	{
 		fseek(fp,0,SEEK_SET);
-		while ((read = getline(&line, &len, fp)) != -1) {
+		while ((read = getline(&line, &len, fp)) != -1)
+		{
 			temp++;
 		}
 		fclose(fp);
 		int curr=0;
 		while(line[curr]!='\n')
-			{
-				curr++;
-			}
+		{
+			curr++;
+		}
 		line[curr]='\0'	;
 		return line;
-
 	}
+	/* Run the nth command in history */
 	else
 	{
 		int lineN=0;
@@ -147,17 +147,17 @@ char *launch_history(char *input)
 			offset=lineN;
 		int temp=0;
 		fseek(fp,0,SEEK_SET);
-		while ((read = getline(&line, &len, fp)) != -1) {
-		    if(temp==offset)
-		    	break;
-		    temp++;
+		while ((read = getline(&line, &len, fp)) != -1)
+		{
+			if(temp==offset)
+				break;
+			temp++;
 		}
-
 		fclose(fp);
 		while(line[curr]!='\n')
-			{
-				curr++;
-			}
+		{
+			curr++;
+		}
 		line[curr]='\0'	;
 		return line;
 	}
