@@ -25,7 +25,7 @@ int (*builtin_func[BUILTIN_FUNC]) (char **) = {
 };
 
 
-/* Execute shell built-in or launch program */
+/* Split piped commands if any and process each of them */
 int psh_execute(char **args)
 {
 	int i, arg_list_length;
@@ -37,13 +37,13 @@ int psh_execute(char **args)
 	if (args[0] == NULL)
 		return 1;
 
-	arg_list = split_process_wise(args);
+	arg_list = psh_split_process_wise(args,'|');
 	for( i=0 ; arg_list[i]!=NULL ; ++i );
 	arg_list_length = i;
 
 	if(arg_list_length==1)
 	{
-		return psh_execute_process(arg_list[0]);
+		return psh_process_non_piped_command(arg_list[0]);
 	}
 	else
 	{
@@ -53,23 +53,26 @@ int psh_execute(char **args)
 			if (!fork())
 			{
 				dup2(pipefd[1], 1); // remap output back to parent
-				// execlp(arg_list[i], arg_list[i], NULL);
-				psh_execute_process(arg_list[i]);
+				psh_process_non_piped_command(arg_list[i]);
 				abort();
 			}
 			// remap output from previous child to input
 			dup2(pipefd[0], 0);
 			close(pipefd[1]);
 		}
-		// execlp(arg_list[i], arg_list[i], NULL);
-		psh_execute_process(arg_list[i]);
+		psh_process_non_piped_command(arg_list[i]);
 		exit(0);
-		return 1;
+		// return 1;
 	}
 }
 
+/* Routine to execute pipe free command */
+int psh_process_non_piped_command(char **args)
+{
+	return psh_execute_process(args);
+}
 
-/* Routine to execute each single process */
+/* Execute pipe free and redirection free command */
 int psh_execute_process(char **args)
 {
 	int i;
@@ -85,12 +88,12 @@ int psh_execute_process(char **args)
 			return (*builtin_func[i])(args);
 		}
 	}
-	return psh_launch(args);
+	return psh_run_exec(args);
 }
 
 
-/* Launch a program and wait for it to terminate */
-int psh_launch(char **args)
+/* Launch a command with system exec */
+int psh_run_exec(char **args)
 {
 	pid_t pid;
 	int status;
@@ -120,51 +123,4 @@ int psh_launch(char **args)
 	}
 
 	return 1;
-}
-
-
-/* Split the list of command tokens by pipe symbols */
-char ***split_process_wise(char **args)
-{
-	int i,j;
-	int list_count,list_index,string_count;
-	char ***arg_list;
-
-	list_count = 1;
-	for( i=0 ; args[i]!=NULL ; i++ )
-	{
-		if(strcmp(args[i],"|")==0)
-			list_count++;
-	}
-
-	arg_list = (char***)malloc((list_count+1)*sizeof(char**));
-
-
-	list_index=0;
-	i=0;
-	while(args[i]!=NULL)
-	{
-		j=i;
-		for( ; args[i]!=NULL && strcmp(args[i],"|")!=0 ; i++ );
-		arg_list[list_index] = (char**)malloc((i-j+1)*sizeof(char*));
-		string_count = 0;
-		for( ; j<i ; j++ )
-		{
-			arg_list[list_index][string_count] = (char*)malloc(1+strlen(args[j]));
-			strcpy(arg_list[list_index][string_count],args[j]);
-			string_count++;
-		}
-		arg_list[list_index][string_count] = NULL;
-		if(args[i]!=NULL)
-			i++;
-		list_index++;
-	}
-	arg_list[list_index] = NULL;
-	// for(i=0;i<list_count;i++)
-	// {
-	// 	for(j=0;arg_list[i][j]!=NULL;j++)
-	// 		printf("%s ",arg_list[i][j]);
-	// 	printf("\n");
-	// }
-	return arg_list;
 }

@@ -1,9 +1,9 @@
 #ifndef _PROCESS_
 #define _PROCESS_
 int psh_execute(char **args);
+int psh_process_non_piped_command(char **args);
 int psh_execute_process(char **args);
-int psh_launch(char **execargs);
-char ***split_process_wise(char **args);
+int psh_run_exec(char **args);
 #endif
 
 #ifndef _BUILTIN_
@@ -41,6 +41,7 @@ char *psh_read_line(void);
 #define _TOKENS_LINE_
 char **psh_split_line(char *line);
 char *psh_join_line(char **tokens,int startpos);
+char ***psh_split_process_wise(char **args, char symbol_char);
 #endif
 
 #ifndef _PRINT_FORMAT_
