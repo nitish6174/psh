@@ -1,9 +1,9 @@
 #ifndef _PROCESS_
 #define _PROCESS_
 int psh_execute(char **args);
-int psh_process_non_piped_command(char **args);
-int psh_execute_process(char **args);
-int psh_run_exec(char **args);
+int psh_process_non_piped_command(char **args, int fork_exec);
+int psh_execute_process(char **args, int fork_exec);
+int psh_run_exec(char **args, int fork_exec);
 #endif
 
 #ifndef _BUILTIN_

@@ -1,3 +1,4 @@
+#include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -31,7 +32,7 @@ int psh_execute(char **args)
 {
 	int i, arg_list_length;
 	char ***arg_list;
-	pid_t pid1, pid2;
+	pid_t pid;
 	int pipefd[2];
 
 	// If empty command was entered.
@@ -44,31 +45,33 @@ int psh_execute(char **args)
 
 	if(arg_list_length==1)
 	{
-		return psh_process_non_piped_command(arg_list[0]);
+		return psh_process_non_piped_command(arg_list[0],-1);
 	}
 	else
 	{
 		for( i=0; i<arg_list_length-1; i++)
 		{
 			pipe(pipefd);
-			if (!fork())
+			pid = fork();
+			if(!pid)
 			{
 				dup2(pipefd[1], 1); // remap output back to parent
-				psh_process_non_piped_command(arg_list[i]);
+				psh_process_non_piped_command(arg_list[i],pid);
 				abort();
 			}
 			// remap output from previous child to input
 			dup2(pipefd[0], 0);
 			close(pipefd[1]);
 		}
-		psh_process_non_piped_command(arg_list[i]);
-		exit(0);
+		psh_process_non_piped_command(arg_list[i],-1);
+		exit(1);
 		// return 1;
 	}
 }
 
+
 /* Routine to execute pipe free command */
-int psh_process_non_piped_command(char **args)
+int psh_process_non_piped_command(char **args, int pid)
 {
 	int i;
 	char ***out_redir_list, ***in_redir_list;
@@ -85,7 +88,7 @@ int psh_process_non_piped_command(char **args)
 
 	if(out_redir_count==0 && in_redir_count==0)
 	{
-		return psh_execute_process(out_redir_list[0]);
+		return psh_execute_process(out_redir_list[0], pid);
 	}
 	else if(out_redir_count==1 && in_redir_count==0)
 	{
@@ -93,7 +96,7 @@ int psh_process_non_piped_command(char **args)
 		out = creat(out_redir_list[1][0], 0777);
 		dup2(out,1);
 		close(out);
-		psh_execute_process(out_redir_list[0]);
+		psh_execute_process(out_redir_list[0], pid);
 		dup2(saved_stdout,1);
 		return 1;
 	}
@@ -103,7 +106,7 @@ int psh_process_non_piped_command(char **args)
 		in = open(in_redir_list[1][0], 0);
 		dup2(in,0);
 		close(in);
-		psh_execute_process(in_redir_list[0]);
+		psh_execute_process(in_redir_list[0], pid);
 		dup2(saved_stdin,0);
 		return 1;
 	}
@@ -117,7 +120,7 @@ int psh_process_non_piped_command(char **args)
 		dup2(out,1);
 		close(in);
 		close(out);
-		psh_execute_process(in_redir_list[0]);
+		psh_execute_process(in_redir_list[0], pid);
 		dup2(saved_stdin,0);
 		dup2(saved_stdout,1);
 		return 1;
@@ -130,7 +133,7 @@ int psh_process_non_piped_command(char **args)
 }
 
 /* Execute pipe free and redirection free command */
-int psh_execute_process(char **args)
+int psh_execute_process(char **args, int pid)
 {
 	int i;
 
@@ -145,24 +148,30 @@ int psh_execute_process(char **args)
 			return (*builtin_func[i])(args);
 		}
 	}
-	return psh_run_exec(args);
+	return psh_run_exec(args, pid);
 }
 
 
 /* Launch a command with system exec */
-int psh_run_exec(char **args)
+int psh_run_exec(char **args, int pid)
 {
-	pid_t pid;
+	// pid_t pid;
 	int status;
 
-	pid = fork();
+	if(pid<0)
+	{
+		pid = fork();
+	}
+
 	if (pid == 0)
 	{
 		// Child process
 		if (execvp(args[0], args) == -1)
 		{
 			perror("psh");
+			// return 1;
 		}
+		// return 1;
 		exit(EXIT_FAILURE);
 	}
 	else if (pid < 0)
