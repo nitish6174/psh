@@ -67,7 +67,7 @@ void list_aliases()
 		while ((read = getline(&line, &len, fp)) != -1)
 		{
 			alias_tokens = psh_split_line(line);
-			printf("%s\n", alias_tokens[0]);
+			printf("%s = %s\n", alias_tokens[0], psh_join_line(alias_tokens,1) );
 		}
 		fclose(fp);
 	}
