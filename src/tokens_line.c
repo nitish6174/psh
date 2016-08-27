@@ -6,7 +6,7 @@
 
 #include "header.h"
 
-#define PSH_TOK_BUFSIZE 64
+#define PSH_TOK_BUFSIZE 1024
 #define PSH_TOK_DELIM " \t\r\n\a"
 
 
@@ -46,4 +46,32 @@ char **psh_split_line(char *line)
 	}
 	tokens[position] = NULL;
 	return tokens;
+}
+
+
+/* Join tokens into a line */
+char *psh_join_line(char **tokens,int startpos)
+{
+	char *line;
+	int i, size=1;
+
+	for(i=startpos ; tokens[i]!=NULL ; i++)
+	{
+		size = size + strlen(tokens[i]) + 1;
+	}
+	line = (char*)malloc(size*sizeof(char));
+
+	if (!line)
+	{
+		fprintf(stderr, "psh: allocation error\n");
+		exit(EXIT_FAILURE);
+	}
+	i = startpos;
+	strcpy(line,tokens[i++]);
+	for( ; tokens[i]!=NULL ; i++)
+	{
+		strcat(line," ");
+		strcat(line,tokens[i]);
+	}
+	return line;
 }

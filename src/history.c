@@ -5,7 +5,7 @@
 #include <string.h>
 
 #include "header.h"
-#define HIST_LIMIT 50
+#define HIST_LIMIT 20
 
 
 /* Show history */

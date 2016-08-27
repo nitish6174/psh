@@ -139,6 +139,7 @@ char ***split_process_wise(char **args)
 
 	arg_list = (char***)malloc((list_count+1)*sizeof(char**));
 
+
 	list_index=0;
 	i=0;
 	while(args[i]!=NULL)
@@ -149,7 +150,7 @@ char ***split_process_wise(char **args)
 		string_count = 0;
 		for( ; j<i ; j++ )
 		{
-			arg_list[list_index][string_count] = (char*)malloc(1+sizeof(args[j]));
+			arg_list[list_index][string_count] = (char*)malloc(1+strlen(args[j]));
 			strcpy(arg_list[list_index][string_count],args[j]);
 			string_count++;
 		}

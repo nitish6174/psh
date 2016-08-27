@@ -37,9 +37,10 @@ char *launch_history(char *input);
 char *psh_read_line(void);
 #endif
 
-#ifndef _SPLIT_LINE_
-#define _SPLIT_LINE_
+#ifndef _TOKENS_LINE_
+#define _TOKENS_LINE_
 char **psh_split_line(char *line);
+char *psh_join_line(char **tokens,int startpos);
 #endif
 
 #ifndef _PRINT_FORMAT_

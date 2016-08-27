@@ -78,24 +78,40 @@ void list_aliases()
 void add_alias(char **args)
 {
 	FILE * fp;
+
 	fp = fopen("alias", "r");
-	int lines, offset;
-	char * line = NULL;
-	char **alias_tokens;
-	size_t len = 0;
-	ssize_t read;
-	
-	fscanf(fp,"%d\n",&lines);	
-	fseek(fp,0,SEEK_SET);
-	while ((read = getline(&line, &len, fp)) != -1)
+	if(fp!=NULL)
 	{
-		alias_tokens = psh_split_line(line);
-		if(strcmp(alias_tokens[0],args[2])==0)
+		int lines;
+		char * line = NULL;
+		char **alias_tokens;
+		size_t len = 0;
+		ssize_t read;
+		
+		fscanf(fp,"%d\n",&lines);	
+		fseek(fp,0,SEEK_SET);
+		while ((read = getline(&line, &len, fp)) != -1)
 		{
-			fprintf(stderr, "psh: The given alias already exists\n");
+			alias_tokens = psh_split_line(line);
+			if(strcmp(alias_tokens[0],args[2])==0)
+			{
+				fprintf(stderr, "psh: The given alias already exists\n");
+			}
+		}		
+		fclose(fp);
+		fp = fopen("alias", "r+");
+		if(fp!=NULL)
+		{
+			fprintf(fp, "%s\n", psh_join_line(args,2));
+			fclose(fp);
 		}
 	}
-	fclose(fp);
+	fp = fopen("alias", "w");
+	if(fp!=NULL)
+	{
+		fprintf(fp, "%s\n", psh_join_line(args,2));
+		fclose(fp);
+	}
 }
 
 
