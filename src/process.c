@@ -25,7 +25,41 @@ int (*builtin_func[BUILTIN_FUNC]) (char **) = {
 	&psh_alias
 };
 
-
+int recursive_pipes(char*** piped_commands, int no_of_pipes_left)
+{
+    //	//ps | sort | less
+    if (no_of_pipes_left < 0)
+    {
+        return 1;
+    }
+    int fds[2];
+    pipe(fds);
+    int pid = fork();
+    if (pid == 0)
+    {
+        printf("hi");
+        close(1);
+        dup(fds[1]);
+        close(fds[0]);
+        recursive_pipes(piped_commands, no_of_pipes_left - 1);
+        close(fds[1]);
+        execvp(piped_commands[no_of_pipes_left - 1][0], piped_commands[no_of_pipes_left - 1]);
+    }
+    else if (pid > 0)
+    {
+        if (no_of_pipes_left > 0)
+        {
+            close(0);
+            dup(fds[0]);
+        }
+        close(fds[1]);
+        wait(NULL);
+        close(fds[0]);
+        execvp(piped_commands[no_of_pipes_left][0], piped_commands[no_of_pipes_left]);
+        perror("Command not found");
+    }
+    return 1;
+}	    /* -----  end of function recursive_pipe  ----- */	
 /* Split piped commands if any and process each of them */
 int psh_execute(char **args)
 {
@@ -33,6 +67,7 @@ int psh_execute(char **args)
 	char ***arg_list;
 	pid_t pid1, pid2;
 	int pipefd[2];
+	int status;
 
 	// If empty command was entered.
 	if (args[0] == NULL)
@@ -41,30 +76,18 @@ int psh_execute(char **args)
 	arg_list = psh_split_process_wise(args,'|');
 	for( i=0 ; arg_list[i]!=NULL ; ++i );
 	arg_list_length = i;
-
-	if(arg_list_length==1)
-	{
-		return psh_process_non_piped_command(arg_list[0]);
-	}
+	pid1=fork();
+	if(pid1==0)
+		return recursive_pipes(arg_list,i-1);
 	else
-	{
-		for( i=0; i<arg_list_length-1; i++)
+		
 		{
-			pipe(pipefd);
-			if (!fork())
+			do
 			{
-				dup2(pipefd[1], 1); // remap output back to parent
-				psh_process_non_piped_command(arg_list[i]);
-				abort();
-			}
-			// remap output from previous child to input
-			dup2(pipefd[0], 0);
-			close(pipefd[1]);
+				waitpid(pid1, &status, WUNTRACED);
+			} while (!WIFEXITED(status) && !WIFSIGNALED(status));
 		}
-		psh_process_non_piped_command(arg_list[i]);
-		exit(0);
-		// return 1;
-	}
+		return 1;
 }
 
 /* Routine to execute pipe free command */
