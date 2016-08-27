@@ -1,6 +1,7 @@
 psh
 history
 alias
+*.txt
 
 # Prerequisites
 *.d
@@ -21,12 +22,6 @@ alias
 *.la
 *.lo
 
-# Shared objects (inc. Windows DLLs)
-*.dll
-*.so
-*.so.*
-*.dylib
-
 # Executables
 *.exe
 *.out
@@ -38,3 +33,9 @@ alias
 # Debug files
 *.dSYM/
 *.su
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib

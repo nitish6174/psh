@@ -69,7 +69,28 @@ int psh_execute(char **args)
 /* Routine to execute pipe free command */
 int psh_process_non_piped_command(char **args)
 {
-	return psh_execute_process(args);
+	char ***arg_list;
+	int i, arg_list_length;
+	int in, out, saved_stdin, saved_stdout;
+
+	arg_list = psh_split_process_wise(args,'>');
+	for( i=0 ; arg_list[i]!=NULL ; ++i );
+	arg_list_length = i;
+
+	if(arg_list_length==1)
+	{
+		return psh_execute_process(arg_list[0]);
+	}
+	else
+	{
+		saved_stdout = dup(1);
+		out = creat(arg_list[1][0], 0777);
+		dup2(out,1);
+		close(out);
+		psh_execute_process(arg_list[0]);
+		dup2(saved_stdout,1);
+		return 1;
+	}
 }
 
 /* Execute pipe free and redirection free command */
