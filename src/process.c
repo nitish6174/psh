@@ -70,28 +70,63 @@ int psh_execute(char **args)
 /* Routine to execute pipe free command */
 int psh_process_non_piped_command(char **args)
 {
-	char ***arg_list;
-	int i, arg_list_length;
+	int i;
+	char ***out_redir_list, ***in_redir_list;
+	int out_redir_count, in_redir_count;
 	int in, out, saved_stdin, saved_stdout;
 
-	arg_list = psh_split_process_wise(args,'>');
-	for( i=0 ; arg_list[i]!=NULL ; ++i );
-	arg_list_length = i;
+	out_redir_list = psh_split_process_wise(args,'>');
+	for( i=0 ; out_redir_list[i]!=NULL ; ++i );
+	out_redir_count = i-1;
 
-	if(arg_list_length==1)
+	in_redir_list = psh_split_process_wise(out_redir_list[0],'<');
+	for( i=0 ; in_redir_list[i]!=NULL ; ++i );
+	in_redir_count = i-1;
+
+	if(out_redir_count==0 && in_redir_count==0)
 	{
-		return psh_execute_process(arg_list[0]);
+		return psh_execute_process(out_redir_list[0]);
 	}
-	else
+	else if(out_redir_count==1 && in_redir_count==0)
 	{
 		saved_stdout = dup(1);
-		out = creat(arg_list[1][0], 0777);
+		out = creat(out_redir_list[1][0], 0777);
 		dup2(out,1);
 		close(out);
-		psh_execute_process(arg_list[0]);
+		psh_execute_process(out_redir_list[0]);
 		dup2(saved_stdout,1);
 		return 1;
 	}
+	else if(out_redir_count==0 && in_redir_count==1)
+	{
+		saved_stdin = dup(0);
+		in = open(in_redir_list[1][0], 0);
+		dup2(in,0);
+		close(in);
+		psh_execute_process(in_redir_list[0]);
+		dup2(saved_stdin,0);
+		return 1;
+	}
+	else if(out_redir_count==1 && in_redir_count==1)
+	{
+		saved_stdin = dup(0);
+		saved_stdout = dup(1);
+		in = open(in_redir_list[1][0], 0);
+		out = creat(out_redir_list[1][0], 0777);
+		dup2(in,0);
+		dup2(out,1);
+		close(in);
+		close(out);
+		psh_execute_process(in_redir_list[0]);
+		dup2(saved_stdin,0);
+		dup2(saved_stdout,1);
+		return 1;
+	}
+	else
+	{
+		fprintf(stderr, "psh: Invalid redirection format\n");
+	}
+	return 1;
 }
 
 /* Execute pipe free and redirection free command */
