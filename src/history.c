@@ -90,7 +90,6 @@ void update_history(char *buffer)
 			free(line);
 		fclose(fileptr2);
 		remove("history");
-		//rename the file replica.c to original name
 		rename("replica", "history");
 		fclose(fileptr1);	
 	}

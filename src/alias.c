@@ -68,7 +68,7 @@ void list_aliases()
 		while ((read = getline(&line, &len, fp)) != -1)
 		{
 			alias_tokens = psh_split_line(line);
-			printf("%s = %s\n", alias_tokens[0], psh_join_line(alias_tokens,1) );
+			printf("%s\n", psh_join_line(alias_tokens,0) );
 		}
 		fclose(fp);
 	}
@@ -100,18 +100,21 @@ void add_alias(char **args)
 			}
 		}		
 		fclose(fp);
-		fp = fopen("alias", "r+");
+		fp = fopen("alias", "a+");
 		if(fp!=NULL)
 		{
-			fprintf(fp, "%s\n", psh_join_line(args,2));
+			fprintf(fp, "%s = %s\n", args[2], psh_join_line(args,3));
 			fclose(fp);
 		}
 	}
-	fp = fopen("alias", "w");
-	if(fp!=NULL)
+	else
 	{
-		fprintf(fp, "%s\n", psh_join_line(args,2));
-		fclose(fp);
+		fp = fopen("alias", "w");
+		if(fp!=NULL)
+		{
+			fprintf(fp, "%s = %s\n", args[2], psh_join_line(args,3));
+			fclose(fp);
+		}		
 	}
 }
 
@@ -119,33 +122,45 @@ void add_alias(char **args)
 /* Delete alias */
 void delete_alias(char *alias_name)
 {
-	FILE * fp;
-	fp = fopen("alias", "r");
-	if(fp==NULL)
+	FILE *fp1,*fp2;
+	fp1 = fopen("alias", "r");
+	if(fp1==NULL)
 	{
 		fprintf(stderr, "psh: No such alias exists. Cannot delete.\n");
 	}
 	else
 	{
-		int lines, offset;
+		fp2 = fopen("alias_temp", "w");
+		int lines, offset, found=0;
 		char * line = NULL;
 		char **alias_tokens;
 		size_t len = 0;
 		ssize_t read;
 		
-		fscanf(fp,"%d\n",&lines);	
-		fseek(fp,0,SEEK_SET);
-		while ((read = getline(&line, &len, fp)) != -1)
+		fscanf(fp1,"%d\n",&lines);	
+		fseek(fp1,0,SEEK_SET);
+		while ((read = getline(&line, &len, fp1)) != -1)
 		{
 			alias_tokens = psh_split_line(line);
-			if(strcmp(alias_tokens[0],alias_name)==0)
-			{
-				printf("Alias found\n");
-				fclose(fp);
-				return;
-			}
+			if(strcmp(alias_tokens[0],alias_name)!=0)
+				fprintf(fp2,"%s\n", psh_join_line(alias_tokens,0));
+			else
+				found = 1;
 		}
-		fclose(fp);
-		fprintf(stderr, "psh: No such alias exists. Cannot delete.\n");
+		if (line)
+			free(line);
+		fclose(fp1);
+		fclose(fp2);
+		if(found==1)
+		{
+			remove("alias");
+			rename("alias_temp", "alias");
+			printf("Alias deleted\n");
+		}
+		else
+		{
+			remove("alias_temp");
+			fprintf(stderr, "psh: No such alias exists. Cannot delete.\n");
+		}
 	}
 }
