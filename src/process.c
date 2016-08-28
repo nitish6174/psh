@@ -30,7 +30,7 @@ int (*builtin_func[BUILTIN_FUNC]) (char **) = {
 /* Split piped commands if any and process each of them */
 int psh_execute(char **args)
 {
-	int i, arg_list_length;
+	int i, arg_list_length, ret_value;
 	char ***arg_list;
 	pid_t pid;
 	int pipefd[2];
@@ -45,7 +45,9 @@ int psh_execute(char **args)
 
 	if(arg_list_length==1)
 	{
-		return psh_process_non_piped_command(arg_list[0],-1);
+		ret_value = psh_process_non_piped_command(arg_list[0],-1);
+		free(arg_list);
+		return ret_value;
 	}
 	else
 	{
@@ -63,9 +65,10 @@ int psh_execute(char **args)
 			dup2(pipefd[0], 0);
 			close(pipefd[1]);
 		}
-		psh_process_non_piped_command(arg_list[i],-1);
+		ret_value = psh_process_non_piped_command(arg_list[i],-1);
+		free(arg_list);
 		exit(1);
-		// return 1;
+		return ret_value;
 	}
 }
 
@@ -77,6 +80,7 @@ int psh_process_non_piped_command(char **args, int pid)
 	char ***out_redir_list, ***in_redir_list;
 	int out_redir_count, in_redir_count;
 	int in, out, saved_stdin, saved_stdout;
+	int ret_value;
 
 	out_redir_list = psh_split_process_wise(args,'>');
 	for( i=0 ; out_redir_list[i]!=NULL ; ++i );
@@ -88,7 +92,7 @@ int psh_process_non_piped_command(char **args, int pid)
 
 	if(out_redir_count==0 && in_redir_count==0)
 	{
-		return psh_execute_process(out_redir_list[0], pid);
+		ret_value = psh_execute_process(out_redir_list[0], pid);
 	}
 	else if(out_redir_count==1 && in_redir_count==0)
 	{
@@ -96,9 +100,8 @@ int psh_process_non_piped_command(char **args, int pid)
 		out = creat(out_redir_list[1][0], 0777);
 		dup2(out,1);
 		close(out);
-		psh_execute_process(out_redir_list[0], pid);
+		ret_value = psh_execute_process(out_redir_list[0], pid);
 		dup2(saved_stdout,1);
-		return 1;
 	}
 	else if(out_redir_count==0 && in_redir_count==1)
 	{
@@ -106,9 +109,8 @@ int psh_process_non_piped_command(char **args, int pid)
 		in = open(in_redir_list[1][0], 0);
 		dup2(in,0);
 		close(in);
-		psh_execute_process(in_redir_list[0], pid);
+		ret_value = psh_execute_process(in_redir_list[0], pid);
 		dup2(saved_stdin,0);
-		return 1;
 	}
 	else if(out_redir_count==1 && in_redir_count==1)
 	{
@@ -120,22 +122,24 @@ int psh_process_non_piped_command(char **args, int pid)
 		dup2(out,1);
 		close(in);
 		close(out);
-		psh_execute_process(in_redir_list[0], pid);
+		ret_value = psh_execute_process(in_redir_list[0], pid);
 		dup2(saved_stdin,0);
 		dup2(saved_stdout,1);
-		return 1;
 	}
 	else
 	{
 		fprintf(stderr, "psh: Invalid redirection format\n");
+		ret_value = 1;
 	}
-	return 1;
+	free(out_redir_list);
+	free(in_redir_list);
+	return ret_value;
 }
 
 /* Execute pipe free and redirection free command */
 int psh_execute_process(char **args, int pid)
 {
-	int i;
+	int i, ret_value;
 
 	// If empty command was entered.
 	if (args[0] == NULL)
@@ -145,34 +149,32 @@ int psh_execute_process(char **args, int pid)
 	{
 		if (strcmp(args[0], builtin_str[i]) == 0)
 		{
-			return (*builtin_func[i])(args);
+			ret_value = (*builtin_func[i])(args);
+			return ret_value;
 		}
 	}
-	return psh_run_exec(args, pid);
+	ret_value = psh_run_exec(args, pid);
+	return ret_value;
 }
 
 
 /* Launch a command with system exec */
 int psh_run_exec(char **args, int pid)
 {
-	// pid_t pid;
 	int status;
-
 	if(pid<0)
 	{
 		pid = fork();
 	}
-
 	if (pid == 0)
 	{
 		// Child process
 		if (execvp(args[0], args) == -1)
 		{
 			perror("psh");
-			// return 1;
 		}
-		// return 1;
-		exit(EXIT_FAILURE);
+		return 1;
+		// exit(EXIT_FAILURE);
 	}
 	else if (pid < 0)
 	{
@@ -187,6 +189,5 @@ int psh_run_exec(char **args, int pid)
 			waitpid(pid, &status, WUNTRACED);
 		} while (!WIFEXITED(status) && !WIFSIGNALED(status));
 	}
-
 	return 1;
 }
