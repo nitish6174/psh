@@ -20,13 +20,20 @@ void psh_loop(void)
 		printf("%s%s" PRINT_RESET "> ",formatCode("underline","green"),getcwd(cwd,sizeof(cwd)));
 		line = psh_read_line();
 		update_history(line);
-		args = psh_split_line(line);
-		args = psh_process_alias(args);
-		status = psh_execute(args);
-		// printf("Status : %d\n", status);
-		free(line);
-		free(args);
-	} while (status);
+		if(strcmp(line,"exit")==0)
+		{
+			exit(0);
+		}
+		else
+		{
+			args = psh_split_line(line);
+			args = psh_process_alias(args);
+			status = psh_execute(args);
+			// printf("Status : %d\n", status);
+			free(line);
+			free(args);
+		}
+	} while(status);
 }
 
 

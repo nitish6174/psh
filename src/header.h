@@ -1,10 +1,10 @@
 #ifndef _PROCESS_
 #define _PROCESS_
 int psh_execute(char **args);
-int recursive_pipes(char*** arg_list, int no_of_pipes_left, int pid);
-int psh_process_non_piped_command(char **args, int pid);
-int psh_execute_process(char **args, int pid);
-int psh_run_exec(char **args, int pid);
+int recursive_pipes(char*** arg_list, int no_of_pipes_left);
+int psh_process_non_piped_command(char **args);
+int psh_execute_process(char **args);
+int psh_run_exec(char **args);
 #endif
 
 #ifndef _BUILTIN_

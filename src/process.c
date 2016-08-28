@@ -9,23 +9,6 @@
 #include "header.h"
 #define BUILTIN_FUNC 5
 
-/* List of built-in commands */
-char *builtin_str[BUILTIN_FUNC] = {
-	"cd",
-	"help",
-	"exit",
-	"history",
-	"alias"
-};
-/* Pointer to these built-in command functions */
-int (*builtin_func[BUILTIN_FUNC]) (char **) = {
-	&psh_cd,
-	&psh_help,
-	&psh_exit,
-	&psh_history,
-	&psh_alias
-};
-
 
 /* Split piped commands if any and process each of them */
 int psh_execute(char **args)
@@ -44,49 +27,42 @@ int psh_execute(char **args)
 	for( i=0 ; arg_list[i]!=NULL ; ++i );
 	arg_list_length = i;
 
-	if(strcmp(args[0],"exit")==0)
+	pid=fork();
+	if(pid==0)
 	{
-		return 0;
+		ret_value = recursive_pipes(arg_list , i-1);
+		return ret_value;
 	}
-	else
+	else if(pid>0)
 	{
-		pid=fork();
-		if(pid==0)
+		do
 		{
-			ret_value = recursive_pipes(arg_list , i-1 , -1);
-			return ret_value;
-		}
-		else if(pid>0)
-		{
-			do
-			{
-				waitpid(pid, &status, WUNTRACED);
-			} while (!WIFEXITED(status) && !WIFSIGNALED(status));
-		}
-		return 1;
+			waitpid(pid, &status, WUNTRACED);
+		} while (!WIFEXITED(status) && !WIFSIGNALED(status));
 	}
+	return 1;
 }
 
 
 
-int recursive_pipes(char*** arg_list, int no_of_pipes_left, int pid)
+int recursive_pipes(char*** arg_list, int no_of_pipes_left)
 {
 	int fds[2], ret_value;
+	pid_t pid;
 
 	if (no_of_pipes_left < 0)
 		return 1;
 
 	pipe(fds);
-	if(pid<0)
-		pid = fork();
+	pid = fork();
 	if (pid == 0)
 	{
 		close(1);
 		dup(fds[1]);
 		close(fds[0]);
-		recursive_pipes(arg_list, no_of_pipes_left-1 , 1);
+		recursive_pipes(arg_list , no_of_pipes_left-1);
 		close(fds[1]);
-		ret_value = psh_process_non_piped_command(arg_list[no_of_pipes_left-1],pid);
+		ret_value = psh_process_non_piped_command(arg_list[no_of_pipes_left-1]);
 		return ret_value;
 	}
 	else if (pid > 0)
@@ -99,16 +75,16 @@ int recursive_pipes(char*** arg_list, int no_of_pipes_left, int pid)
 		close(fds[1]);
 		wait(NULL);
 		close(fds[0]);
-		ret_value = psh_process_non_piped_command(arg_list[no_of_pipes_left],pid);
+		ret_value = psh_process_non_piped_command(arg_list[no_of_pipes_left]);
 		return ret_value;
 	}
 	return 1;
 }
 
 /* Routine to execute pipe free command */
-int psh_process_non_piped_command(char **args, int pid)
+int psh_process_non_piped_command(char **args)
 {
-	int i;
+	int i, ret_value;
 	char ***out_redir_list, ***in_redir_list;
 	int out_redir_count, in_redir_count;
 	int in, out, saved_stdin, saved_stdout;
@@ -123,7 +99,7 @@ int psh_process_non_piped_command(char **args, int pid)
 
 	if(out_redir_count==0 && in_redir_count==0)
 	{
-		return psh_execute_process(out_redir_list[0], pid);
+		ret_value = psh_execute_process(out_redir_list[0]);
 	}
 	else if(out_redir_count==1 && in_redir_count==0)
 	{
@@ -131,9 +107,9 @@ int psh_process_non_piped_command(char **args, int pid)
 		out = creat(out_redir_list[1][0], 0777);
 		dup2(out,1);
 		close(out);
-		psh_execute_process(out_redir_list[0], pid);
+		ret_value = psh_execute_process(out_redir_list[0]);
 		dup2(saved_stdout,1);
-		return 1;
+		return ret_value;
 	}
 	else if(out_redir_count==0 && in_redir_count==1)
 	{
@@ -141,9 +117,9 @@ int psh_process_non_piped_command(char **args, int pid)
 		in = open(in_redir_list[1][0], 0);
 		dup2(in,0);
 		close(in);
-		psh_execute_process(in_redir_list[0], pid);
+		ret_value = psh_execute_process(in_redir_list[0]);
 		dup2(saved_stdin,0);
-		return 1;
+		return ret_value;
 	}
 	else if(out_redir_count==1 && in_redir_count==1)
 	{
@@ -155,20 +131,21 @@ int psh_process_non_piped_command(char **args, int pid)
 		dup2(out,1);
 		close(in);
 		close(out);
-		psh_execute_process(in_redir_list[0], pid);
+		ret_value = psh_execute_process(in_redir_list[0]);
 		dup2(saved_stdin,0);
 		dup2(saved_stdout,1);
-		return 1;
+		return ret_value;
 	}
 	else
 	{
 		fprintf(stderr, "psh: Invalid redirection format\n");
+		ret_value = 1;
 	}
-	return 1;
+	return ret_value;
 }
 
 /* Execute pipe free and redirection free command */
-int psh_execute_process(char **args, int pid)
+int psh_execute_process(char **args)
 {
 	int i;
 
@@ -183,12 +160,12 @@ int psh_execute_process(char **args, int pid)
 			return (*builtin_func[i])(args);
 		}
 	}
-	return psh_run_exec(args, pid);
+	return psh_run_exec(args);
 }
 
 
 /* Launch a command with system exec */
-int psh_run_exec(char **args, int pid)
+int psh_run_exec(char **args)
 {
 	if (execvp(args[0], args) == -1)
 	{

@@ -8,7 +8,23 @@
 #include "header.h"
 
 
-/* Basic built-in functions */
+/* List of built-in commands */
+char *builtin_str[BUILTIN_FUNC] = {
+	"cd",
+	"help",
+	"exit",
+	"history",
+	"alias"
+};
+/* Pointer to these built-in command functions */
+int (*builtin_func[BUILTIN_FUNC]) (char **) = {
+	&psh_cd,
+	&psh_help,
+	&psh_exit,
+	&psh_history,
+	&psh_alias
+};
+
 
 
 /* Get number of built-in functions */
