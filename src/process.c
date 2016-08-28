@@ -30,7 +30,7 @@ int (*builtin_func[BUILTIN_FUNC]) (char **) = {
 /* Split piped commands if any and process each of them */
 int psh_execute(char **args)
 {
-	int i, arg_list_length;
+	int i, arg_list_length, ret_value;
 	char ***arg_list;
 	pid_t pid;
 	int pipefd[2];
@@ -44,36 +44,41 @@ int psh_execute(char **args)
 	for( i=0 ; arg_list[i]!=NULL ; ++i );
 	arg_list_length = i;
 
-	pid=fork();
-	if(pid==0)
+	if(strcmp(args[0],"exit")==0)
 	{
-		// recursive_pipes(arg_list,i-1);
-		i = recursive_pipes(arg_list , i-1 , 1);
-		// printf("i : %d\n", i);
-		return i;
+		return 0;
 	}
-	else if(pid>0)
+	else
 	{
-		do
+		pid=fork();
+		if(pid==0)
 		{
-			waitpid(pid, &status, WUNTRACED);
-		} while (!WIFEXITED(status) && !WIFSIGNALED(status));
+			ret_value = recursive_pipes(arg_list , i-1 , -1);
+			return ret_value;
+		}
+		else if(pid>0)
+		{
+			do
+			{
+				waitpid(pid, &status, WUNTRACED);
+			} while (!WIFEXITED(status) && !WIFSIGNALED(status));
+		}
+		return 1;
 	}
-	return 1;
 }
 
 
 
-int recursive_pipes(char*** arg_list, int no_of_pipes_left, int pid_bool)
+int recursive_pipes(char*** arg_list, int no_of_pipes_left, int pid)
 {
+	int fds[2], ret_value;
+
 	if (no_of_pipes_left < 0)
 		return 1;
-	int fds[2], pid;
 
 	pipe(fds);
-	if(pid_bool>0)
+	if(pid<0)
 		pid = fork();
-	// printf("%d\n", pid);
 	if (pid == 0)
 	{
 		close(1);
@@ -81,9 +86,8 @@ int recursive_pipes(char*** arg_list, int no_of_pipes_left, int pid_bool)
 		close(fds[0]);
 		recursive_pipes(arg_list, no_of_pipes_left-1 , 1);
 		close(fds[1]);
-		psh_process_non_piped_command(arg_list[no_of_pipes_left-1],pid);
-		// return psh_execute_process(arg_list[no_of_pipes_left-1],pid);
-		// execvp(arg_list[no_of_pipes_left-1][0],arg_list[no_of_pipes_left-1]);
+		ret_value = psh_process_non_piped_command(arg_list[no_of_pipes_left-1],pid);
+		return ret_value;
 	}
 	else if (pid > 0)
 	{
@@ -95,9 +99,8 @@ int recursive_pipes(char*** arg_list, int no_of_pipes_left, int pid_bool)
 		close(fds[1]);
 		wait(NULL);
 		close(fds[0]);
-		psh_process_non_piped_command(arg_list[no_of_pipes_left],pid);
-		// return psh_execute_process(arg_list[no_of_pipes_left],pid);
-		// execvp(arg_list[no_of_pipes_left][0],arg_list[no_of_pipes_left]);
+		ret_value = psh_process_non_piped_command(arg_list[no_of_pipes_left],pid);
+		return ret_value;
 	}
 	return 1;
 }
@@ -168,7 +171,6 @@ int psh_process_non_piped_command(char **args, int pid)
 int psh_execute_process(char **args, int pid)
 {
 	int i;
-	// printf("OK\n");
 
 	// If empty command was entered.
 	if (args[0] == NULL)
@@ -194,9 +196,7 @@ int psh_run_exec(char **args, int pid)
 	}
 	return 1;
 
-	// // pid_t pid;
 	// int status;
-
 	// if(pid<0)
 	// {
 	// 	pid = fork();
