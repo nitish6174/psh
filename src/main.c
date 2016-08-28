@@ -23,6 +23,7 @@ void psh_loop(void)
 		args = psh_split_line(line);
 		args = psh_process_alias(args);
 		status = psh_execute(args);
+		// printf("Status : %d\n", status);
 		free(line);
 		free(args);
 	} while (status);

@@ -34,6 +34,7 @@ int psh_execute(char **args)
 	char ***arg_list;
 	pid_t pid;
 	int pipefd[2];
+	int status;
 
 	// If empty command was entered.
 	if (args[0] == NULL)
@@ -43,32 +44,63 @@ int psh_execute(char **args)
 	for( i=0 ; arg_list[i]!=NULL ; ++i );
 	arg_list_length = i;
 
-	if(arg_list_length==1)
+	pid=fork();
+	if(pid==0)
 	{
-		return psh_process_non_piped_command(arg_list[0],-1);
+		// recursive_pipes(arg_list,i-1);
+		i = recursive_pipes(arg_list , i-1 , 1);
+		// printf("i : %d\n", i);
+		return i;
 	}
-	else
+	else if(pid>0)
 	{
-		for( i=0; i<arg_list_length-1; i++)
+		do
 		{
-			pipe(pipefd);
-			pid = fork();
-			if(!pid)
-			{
-				dup2(pipefd[1], 1); // remap output back to parent
-				psh_process_non_piped_command(arg_list[i],pid);
-				abort();
-			}
-			// remap output from previous child to input
-			dup2(pipefd[0], 0);
-			close(pipefd[1]);
-		}
-		psh_process_non_piped_command(arg_list[i],-1);
-		exit(1);
-		// return 1;
+			waitpid(pid, &status, WUNTRACED);
+		} while (!WIFEXITED(status) && !WIFSIGNALED(status));
 	}
+	return 1;
 }
 
+
+
+int recursive_pipes(char*** arg_list, int no_of_pipes_left, int pid_bool)
+{
+	if (no_of_pipes_left < 0)
+		return 1;
+	int fds[2], pid;
+
+	pipe(fds);
+	if(pid_bool>0)
+		pid = fork();
+	// printf("%d\n", pid);
+	if (pid == 0)
+	{
+		close(1);
+		dup(fds[1]);
+		close(fds[0]);
+		recursive_pipes(arg_list, no_of_pipes_left-1 , 1);
+		close(fds[1]);
+		psh_process_non_piped_command(arg_list[no_of_pipes_left-1],pid);
+		// return psh_execute_process(arg_list[no_of_pipes_left-1],pid);
+		// execvp(arg_list[no_of_pipes_left-1][0],arg_list[no_of_pipes_left-1]);
+	}
+	else if (pid > 0)
+	{
+		if (no_of_pipes_left > 0)
+		{
+			close(0);
+			dup(fds[0]);
+		}
+		close(fds[1]);
+		wait(NULL);
+		close(fds[0]);
+		psh_process_non_piped_command(arg_list[no_of_pipes_left],pid);
+		// return psh_execute_process(arg_list[no_of_pipes_left],pid);
+		// execvp(arg_list[no_of_pipes_left][0],arg_list[no_of_pipes_left]);
+	}
+	return 1;
+}
 
 /* Routine to execute pipe free command */
 int psh_process_non_piped_command(char **args, int pid)
@@ -136,6 +168,7 @@ int psh_process_non_piped_command(char **args, int pid)
 int psh_execute_process(char **args, int pid)
 {
 	int i;
+	// printf("OK\n");
 
 	// If empty command was entered.
 	if (args[0] == NULL)
@@ -155,38 +188,42 @@ int psh_execute_process(char **args, int pid)
 /* Launch a command with system exec */
 int psh_run_exec(char **args, int pid)
 {
-	// pid_t pid;
-	int status;
-
-	if(pid<0)
+	if (execvp(args[0], args) == -1)
 	{
-		pid = fork();
-	}
-
-	if (pid == 0)
-	{
-		// Child process
-		if (execvp(args[0], args) == -1)
-		{
-			perror("psh");
-			// return 1;
-		}
-		// return 1;
-		exit(EXIT_FAILURE);
-	}
-	else if (pid < 0)
-	{
-		// Error forking
 		perror("psh");
 	}
-	else
-	{
-		// Parent process
-		do
-		{
-			waitpid(pid, &status, WUNTRACED);
-		} while (!WIFEXITED(status) && !WIFSIGNALED(status));
-	}
-
 	return 1;
+
+	// // pid_t pid;
+	// int status;
+
+	// if(pid<0)
+	// {
+	// 	pid = fork();
+	// }
+	// if (pid == 0)
+	// {
+	// 	// Child process
+	// 	if (execvp(args[0], args) == -1)
+	// 	{
+	// 		perror("psh");
+	// 		// return 1;
+	// 	}
+	// 	// return 1;
+	// 	exit(EXIT_FAILURE);
+	// }
+	// else if (pid < 0)
+	// {
+	// 	// Error forking
+	// 	perror("psh");
+	// }
+	// else
+	// {
+	// 	// Parent process
+	// 	do
+	// 	{
+	// 		waitpid(pid, &status, WUNTRACED);
+	// 	} while (!WIFEXITED(status) && !WIFSIGNALED(status));
+	// }
+	// return 1;
 }
