@@ -57,13 +57,15 @@ int psh_help(char **args)
 {
 	int i;
 	printf("Type program names and arguments, and hit enter.\n");
-	printf("The following are built in:\n");
+	printf("The following are customly built in:\n");
 	for (i = 0; i < psh_num_builtins(); i++)
 	{
 		printf("  %s\n", builtin_str[i]);
 	}
+	printf("\nEnter !2 to run the 2nd command in history and so on ...\n", );
+	printf("\nEnter alias -a <alias_name> <alias_cmd> to add alias\nEnter alias -d <cmd> to delete alias cmd\nEnter alias -l to list the aliases\n", );
 
-	printf("Use the man command for information on other programs.\n");
+	printf("\nUse the man command for information on other programs.\n");
 	return 1;
 }
 
