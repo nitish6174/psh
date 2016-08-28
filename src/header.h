@@ -19,10 +19,12 @@ extern int (*builtin_func[BUILTIN_FUNC]) (char **) ;
 
 #ifndef _ALIAS_
 #define _ALIAS_
+char **psh_process_alias(char **args);
 int psh_alias(char **args);
 void list_aliases();
 void add_alias(char **args);
 void delete_alias(char *alias_name);
+char *psh_alias_value(char *alias_key);
 #endif
 
 #ifndef _HISTORY_

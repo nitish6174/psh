@@ -8,6 +8,19 @@
 #include "header.h"
 
 
+/* Replace alias key in input command with its value if present */
+char **psh_process_alias(char **args)
+{
+	char *alias_key = args[0];
+	char *alias_value = psh_alias_value(alias_key);
+	if(strlen(alias_value)>0)
+	{
+		free(args);
+		args = psh_split_line(alias_value);
+	}
+	return args;
+}
+
 /* Take action depending on flag value */
 int psh_alias(char **args)
 {
@@ -163,4 +176,37 @@ void delete_alias(char *alias_name)
 			fprintf(stderr, "psh: No such alias exists. Cannot delete.\n");
 		}
 	}
+}
+
+/* Find an alias key and return its value */
+char *psh_alias_value(char *alias_key)
+{
+	FILE * fp;
+	char *s;
+
+	s = (char*)malloc(2*sizeof(char));
+	s[0] = '\0';
+	fp = fopen("alias", "r");
+	if(fp!=NULL)
+	{
+		int lines;
+		char * line = NULL;
+		char **alias_tokens;
+		size_t len = 0;
+		ssize_t read;
+		
+		fscanf(fp,"%d\n",&lines);	
+		fseek(fp,0,SEEK_SET);
+		while ((read = getline(&line, &len, fp)) != -1)
+		{
+			alias_tokens = psh_split_line(line);
+			if(strcmp(alias_tokens[0],alias_key)==0)
+			{
+				fclose(fp);
+				return psh_join_line(alias_tokens,2);
+			}
+		}
+		fclose(fp);
+	}
+	return s;
 }

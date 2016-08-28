@@ -21,6 +21,7 @@ void psh_loop(void)
 		line = psh_read_line();
 		update_history(line);
 		args = psh_split_line(line);
+		args = psh_process_alias(args);
 		status = psh_execute(args);
 		free(line);
 		free(args);
