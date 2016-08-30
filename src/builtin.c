@@ -62,8 +62,8 @@ int psh_help(char **args)
 	{
 		printf("  %s\n", builtin_str[i]);
 	}
-	printf("\nEnter !2 to run the 2nd command in history and so on ...\n", );
-	printf("\nEnter alias -a <alias_name> <alias_cmd> to add alias\nEnter alias -d <cmd> to delete alias cmd\nEnter alias -l to list the aliases\n", );
+	printf("\nEnter !2 to run the 2nd command in history and so on ...\n" );
+	printf("\nEnter alias -a <alias_name> <alias_cmd> to add alias\nEnter alias -d <cmd> to delete alias cmd\nEnter alias -l to list the aliases\n" );
 
 	printf("\nUse the man command for information on other programs.\n");
 	return 1;
